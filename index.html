@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Equipaje">
+<title>Equipaje Stuttgart</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f6fdf'/%3E%3Crect x='18' y='20' width='28' height='32' rx='6' fill='none' stroke='white' stroke-width='5'/%3E%3Cpath d='M26 20v-6h12v6' fill='none' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f4f1ec;
+  --card: #ffffff;
+  --ink: #1b1d21;
+  --muted: #6c707a;
+  --line: #e4dfd6;
+  --accent: #2f6fdf;
+  --accent-soft: #e3ecfc;
+  --ok: #1f9d63;
+  --ok-soft: #dcf3e8;
+  --doubt: #c98410;
+  --doubt-soft: #fbefd6;
+  --no: #9a9ea8;
+  --danger: #d6453d;
+  --shadow: 0 1px 2px rgba(20, 20, 30, 0.06), 0 6px 20px rgba(20, 20, 30, 0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a;
+    --card: #1d2026;
+    --ink: #eef0f4;
+    --muted: #9298a4;
+    --line: #2c3038;
+    --accent: #6d9cff;
+    --accent-soft: #1e2a44;
+    --ok: #3fcf8e;
+    --ok-soft: #173327;
+    --doubt: #f0b341;
+    --doubt-soft: #3a2e14;
+    --no: #6a6f7a;
+    --danger: #ff6b62;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 17px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.wrap { max-width: 680px; margin: 0 auto; padding: 0 16px; }
+
+/* cabecera */
+header { padding: calc(24px + env(safe-area-inset-top)) 0 8px; }
+.kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { margin: 4px 0 2px; font-size: 34px; line-height: 1.1; letter-spacing: -0.02em; }
+.dates { color: var(--muted); font-size: 16px; }
+.bags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.bag { font-size: 14px; padding: 6px 12px; border-radius: 99px; background: var(--card); border: 1px solid var(--line); }
+.weather { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 18px 0 6px; }
+.day { background: var(--card); border-radius: 16px; padding: 12px 8px 10px; text-align: center; box-shadow: var(--shadow); }
+.day b { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.day svg { width: 30px; height: 30px; margin: 6px auto 2px; display: block; color: var(--accent); }
+.day .t { font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
+.day .t span { color: var(--muted); font-weight: 500; }
+.day small { display: block; font-size: 12px; color: var(--muted); line-height: 1.25; margin-top: 2px; }
+
+/* barra de progreso */
+.bar {
+  position: sticky; top: 0; z-index: 10; margin: 10px -16px 0; padding: calc(10px + env(safe-area-inset-top)) 16px 12px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent; transition: border-color 0.2s;
+}
+.bar.stuck { border-bottom-color: var(--line); }
+.bar-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.bar-count { font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.bar-pct { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 15px; }
+.track { height: 10px; border-radius: 99px; background: var(--line); overflow: hidden; margin: 8px 0; }
+.fill { height: 100%; width: 0; border-radius: 99px; background: var(--ok); transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.bar.done .fill { background: linear-gradient(90deg, var(--ok), var(--accent)); }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--muted); }
+.stats i { font-style: normal; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+.tools { display: flex; gap: 8px; margin-top: 10px; }
+.tool {
+  min-height: 44px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); white-space: nowrap;
+  font-size: 14px; font-weight: 600; flex: 1;
+}
+.tool:active { transform: scale(0.97); }
+.tool.arm, .sec-del.arm { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+/* secciones */
+section { background: var(--card); border-radius: 20px; margin-top: 16px; box-shadow: var(--shadow); overflow: hidden; }
+.sec-head { display: flex; align-items: center; gap: 8px; padding: 10px 8px 4px 18px; }
+.sec-title { flex: 1; min-width: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0; padding: 8px 0; border-radius: 8px; outline: none; }
+.sec-n { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sec-del { min-width: 44px; height: 44px; padding: 0 10px; border-radius: 12px; border: 0; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; }
+ul { list-style: none; margin: 0; padding: 0; }
+li { display: flex; align-items: flex-start; gap: 4px; padding: 0 4px 0 6px; border-top: 1px solid var(--line); transition: background 0.2s; }
+li:first-child { border-top: 0; }
+.check {
+  flex: none; width: 48px; height: 52px; border: 0; background: transparent; display: grid; place-items: center; padding: 0;
+}
+.circle {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.check:active .circle { transform: scale(0.85); }
+.circle svg { width: 16px; height: 16px; opacity: 0; transform: scale(0.5); transition: opacity 0.15s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+li[data-s="1"] .circle { background: var(--ok); border-color: var(--ok); color: #fff; }
+li[data-s="2"] .circle { background: var(--doubt-soft); border-color: var(--doubt); color: var(--doubt); }
+li[data-s="3"] .circle { background: transparent; border-color: var(--no); color: var(--no); border-style: dashed; }
+li[data-s="1"] .i-ok, li[data-s="2"] .i-doubt, li[data-s="3"] .i-no { opacity: 1; transform: scale(1); }
+.circle .i { grid-area: 1 / 1; }
+.body { flex: 1; min-width: 0; padding: 13px 0 12px; }
+.txt, .note { outline: none; border-radius: 6px; word-break: break-word; }
+.txt { display: block; }
+.note { display: block; font-size: 14px; color: var(--muted); margin-top: 1px; }
+.note:empty { display: none; }
+.txt:focus, .note:focus, .sec-title:focus { background: var(--accent-soft); box-shadow: 0 0 0 4px var(--accent-soft); }
+.note:focus:empty { display: block; min-height: 1.4em; }
+li[data-s="1"] .txt { color: var(--muted); }
+li[data-s="3"] .txt { color: var(--no); text-decoration: line-through; }
+li[data-s="3"] .note { color: var(--no); }
+.tag { display: none; margin-top: 4px; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; width: fit-content; }
+li[data-s="2"] .tag { display: block; background: var(--doubt-soft); color: var(--doubt); }
+.del { flex: none; width: 44px; height: 52px; border: 0; background: transparent; color: var(--muted); font-size: 22px; line-height: 1; opacity: 0.55; }
+.del:hover, .del:focus-visible { opacity: 1; color: var(--danger); }
+.hide-no li[data-s="3"] { display: none; }
+.add { display: flex; align-items: center; gap: 4px; padding: 0 6px; border-top: 1px solid var(--line); }
+.add span { width: 48px; text-align: center; color: var(--accent); font-size: 24px; font-weight: 300; flex: none; }
+.add input { flex: 1; min-width: 0; min-height: 52px; border: 0; background: transparent; outline: none; font-size: 17px; }
+.add input::placeholder { color: var(--muted); }
+.new-sec {
+  width: 100%; min-height: 56px; margin-top: 16px; border-radius: 20px; border: 2px dashed var(--line); background: transparent;
+  color: var(--accent); font-weight: 700; font-size: 17px;
+}
+.new-sec:active { transform: scale(0.98); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 18px 4px 0; font-size: 13px; color: var(--muted); }
+.flash { animation: flash 0.9s ease; }
+@keyframes flash { from { background: var(--accent-soft); } to { background: transparent; } }
+@media (max-width: 400px) {
+  h1 { font-size: 30px; }
+  .weather { gap: 6px; }
+  .day { padding: 10px 4px 8px; border-radius: 14px; }
+  .day small { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Checklist de equipaje</div>
+    <h1>Stuttgart</h1>
+    <div class="dates">Jueves 26 – domingo 29 de noviembre de 2026</div>
+    <div class="bags"><span class="bag">🧳 Maleta de cabina</span><span class="bag">🎒 Mochila pequeña</span><span class="bag">🌡️ −3 °C a 5 °C</span></div>
+    <div class="weather" id="weather"></div>
+  </header>
+
+  <div class="bar" id="bar">
+    <div class="bar-top">
+      <span class="bar-count" id="count">0 de 0 en la maleta</span>
+      <span class="bar-pct" id="pct">0 %</span>
+    </div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+    <div class="stats">
+      <span><span class="dot" style="background:var(--doubt)"></span>Por decidir: <i id="n-doubt">0</i></span>
+      <span><span class="dot" style="background:var(--no)"></span>Descartados: <i id="n-no">0</i></span>
+    </div>
+    <div class="tools">
+      <button class="tool" id="toggle-no" type="button"></button>
+      <button class="tool" id="reset" type="button">Reiniciar marcas</button>
+    </div>
+  </div>
+
+  <main id="list"></main>
+  <button class="new-sec" id="new-sec" type="button">+ Nueva sección</button>
+  <div class="legend">
+    <span><span class="dot" style="border:2px solid var(--line)"></span>Pendiente</span>
+    <span><span class="dot" style="background:var(--ok)"></span>En la maleta</span>
+    <span><span class="dot" style="background:var(--doubt)"></span>No sé</span>
+    <span><span class="dot" style="border:2px dashed var(--no)"></span>No lo llevo</span>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const KEY = "equipaje-stuttgart-2026";
+  const ESTADOS = ["Pendiente", "En la maleta", "No sé", "No lo llevo"];
+
+  const ICON = {
+    nieve: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/><path d="M9.5 4.5 12 6l2.5-1.5M9.5 19.5 12 18l2.5 1.5"/></svg>',
+    frio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 14.5V5a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 10v7"/></svg>',
+    lluvia: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15a4 4 0 0 1-.6-7.96A5.5 5.5 0 0 1 17 8a3.5 3.5 0 0 1 0 7H7z"/><path d="M8 18l-1 2.5M12 18l-1 2.5M16 18l-1 2.5"/></svg>',
+    nubes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.7-8.95A6 6 0 0 1 17.6 9.5 4.25 4.25 0 0 1 17.25 18H7z"/></svg>'
+  };
+  const DIAS = [
+    { d: "Jue 26", max: 0, min: -2, txt: "Puede nevar", i: "nieve" },
+    { d: "Vie 27", max: 1, min: -2, txt: "Frío seco", i: "frio" },
+    { d: "Sáb 28", max: 2, min: -3, txt: "Lluvia", i: "lluvia" },
+    { d: "Dom 29", max: 2, min: -3, txt: "Nuboso", i: "nubes" }
+  ];
+
+  // [texto, nota]
+  const INICIAL = [
+    ["Ropa de abrigo", [
+      ["Abrigo de plumas", "Puesto en el avión, no en la maleta"],
+      ["Cortavientos", "Hace de capa impermeable ligera"],
+      ["Sudadera gorda"],
+      ["Sudadera fina o sin capucha"],
+      ["Gorro"],
+      ["Guantes"],
+      ["Bufanda o braga de cuello"]
+    ]],
+    ["Ropa base", [
+      ["2 camisetas térmicas"],
+      ["3 camisetas normales"],
+      ["2 pantalones largos", "Que uno sea oscuro y valga para la noche"],
+      ["Mallas térmicas", "Opcional, para debajo del pantalón"],
+      ["5 mudas de ropa interior"],
+      ["4 pares de calcetines gruesos", "Mejor lana que algodón"]
+    ]],
+    ["Para la noche", [
+      ["Camisa lisa oscura o neutra", "La prenda que más sube el look y casi no ocupa"],
+      ["Jersey fino de punto", "Alternativa a la camisa, abriga más"],
+      ["Pantalón oscuro", "Puede ser uno de los dos de arriba"]
+    ]],
+    ["Calzado", [
+      ["Zapatillas puestas", "Limpias y de color liso, pasan por arregladas"],
+      ["Chanclas para casa"],
+      ["Spray impermeabilizante", "Dáselo a las zapatillas antes de salir"],
+      ["Calcetines extra", "Por si se te mojan los pies"]
+    ]],
+    ["Lluvia y frío", [
+      ["Paraguas plegable", "La capucha no basta si llueve fuerte"],
+      ["Bolsa de plástico", "Para la ropa mojada"],
+      ["Calentadores de bolsillo", "Opcional, para los mercadillos"]
+    ]],
+    ["Aseo", [
+      ["Cepillo de dientes y pasta", "Máx. 100 ml por envase, en bolsa transparente"],
+      ["Desodorante"],
+      ["Gel y champú en bote pequeño"],
+      ["Crema hidratante", "El frío seco castiga la piel"],
+      ["Bálsamo labial"]
+    ]],
+    ["Documentación y electrónica", [
+      ["DNI o pasaporte", "Te lo piden para entrar a los locales"],
+      ["Tarjeta sanitaria europea"],
+      ["Móvil y cargador", "Los enchufes son los mismos que en España"],
+      ["Powerbank"],
+      ["Auriculares"],
+      ["Tarjeta y algo de efectivo"]
+    ]]
+  ];
+
+  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  const inicial = () => ({
+    ocultar: false,
+    secciones: INICIAL.map(([titulo, items]) => ({
+      id: uid(), titulo,
+      items: items.map(([texto, nota = ""]) => ({ id: uid(), texto, nota, s: 0 }))
+    }))
+  });
+
+  function cargar() {
+    try {
+      const d = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (d && Array.isArray(d.secciones)) return d;
+    } catch (e) {}
+    return inicial();
+  }
+  let datos = cargar();
+  function guardar() {
+    try { localStorage.setItem(KEY, JSON.stringify(datos)); } catch (e) {}
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const limpio = (el) => el.textContent.replace(/\s+/g, " ").trim();
+
+  // previsión
+  $("weather").innerHTML = DIAS.map((x) =>
+    `<div class="day"><b>${x.d}</b>${ICON[x.i]}<div class="t">${x.max}°<span> / ${String(x.min).replace("-", "−")}°</span></div><small>${x.txt}</small></div>`
+  ).join("");
+
+  const CIRCULO = '<span class="circle">' +
+    '<svg class="i i-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' +
+    '<svg class="i i-doubt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9a3 3 0 1 1 4.2 2.75c-.75.35-1.2 1-1.2 1.85V14"/><path d="M12 18.2v.01"/></svg>' +
+    '<svg class="i i-no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6.5 12h11"/></svg>' +
+    '</span>';
+
+  function itemHTML(it) {
+    return `<li data-id="${it.id}" data-s="${it.s}">` +
+      `<button class="check" type="button" aria-label="${esc(it.texto)}: ${ESTADOS[it.s]}">${CIRCULO}</button>` +
+      `<div class="body"><span class="txt" contenteditable="true" spellcheck="false" enterkeyhint="done">${esc(it.texto)}</span>` +
+      `<span class="note" contenteditable="true" spellcheck="false" enterkeyhint="done">${esc(it.nota || "")}</span>` +
+      `<span class="tag">Por decidir</span></div>` +
+      `<button class="del" type="button" aria-label="Borrar ${esc(it.texto)}">×</button></li>`;
+  }
+
+  function pintar() {
+    const lista = $("list");
+    lista.classList.toggle("hide-no", !!datos.ocultar);
+    lista.innerHTML = datos.secciones.map((sec) =>
+      `<section data-sec="${sec.id}">` +
+        `<div class="sec-head"><h2 class="sec-title" contenteditable="true" spellcheck="false" enterkeyhint="done">${esc(sec.titulo)}</h2>` +
+        `<span class="sec-n"></span>` +
+        `<button class="sec-del" type="button" aria-label="Borrar sección">Borrar</button></div>` +
+        `<ul>${sec.items.map(itemHTML).join("")}</ul>` +
+        `<label class="add"><span aria-hidden="true">+</span><input type="text" placeholder="Añadir algo" enterkeyhint="done" autocomplete="off"></label>` +
+      `</section>`
+    ).join("");
+    resumen();
+  }
+
+  function resumen() {
+    let total = 0, hecho = 0, duda = 0, no = 0;
+    for (const sec of datos.secciones) {
+      let st = 0, sh = 0;
+      for (const it of sec.items) {
+        if (it.s === 3) { no++; continue; }
+        total++; st++;
+        if (it.s === 1) { hecho++; sh++; }
+        if (it.s === 2) duda++;
+      }
+      const el = document.querySelector(`[data-sec="${sec.id}"] .sec-n`);
+      if (el) el.textContent = `${sh}/${st}`;
+    }
+    const pct = total ? Math.round((hecho / total) * 100) : 0;
+    $("count").textContent = `${hecho} de ${total} en la maleta`;
+    $("pct").textContent = `${pct} %`;
+    $("fill").style.width = pct + "%";
+    $("bar").classList.toggle("done", total > 0 && hecho === total);
+    $("n-doubt").textContent = duda;
+    $("n-no").textContent = no;
+    $("toggle-no").textContent = datos.ocultar ? `Ver descartados${no ? ` (${no})` : ""}` : "Ocultar descartados";
+  }
+
+  const buscarSec = (id) => datos.secciones.find((s) => s.id === id);
+  function buscarItem(li) {
+    const sec = buscarSec(li.closest("section").dataset.sec);
+    return { sec, it: sec && sec.items.find((i) => i.id === li.dataset.id) };
+  }
+
+  // confirmación a doble toque: primero "¿Seguro?" durante 3 s
+  function confirmar(btn, accion) {
+    if (btn.classList.contains("arm")) {
+      clearTimeout(btn._t);
+      btn.classList.remove("arm");
+      btn.textContent = btn.dataset.txt;
+      accion();
+      return;
+    }
+    btn.dataset.txt = btn.textContent;
+    btn.classList.add("arm");
+    btn.textContent = "¿Seguro?";
+    btn._t = setTimeout(() => {
+      btn.classList.remove("arm");
+      btn.textContent = btn.dataset.txt;
+    }, 3000);
+  }
+
+  const lista = $("list");
+
+  lista.addEventListener("click", (e) => {
+    const check = e.target.closest(".check");
+    if (check) {
+      const li = check.closest("li");
+      const { it } = buscarItem(li);
+      if (!it) return;
+      it.s = (it.s + 1) % 4;
+      li.dataset.s = it.s;
+      check.setAttribute("aria-label", `${it.texto}: ${ESTADOS[it.s]}`);
+      if (navigator.vibrate) navigator.vibrate(8);
+      guardar(); resumen();
+      return;
+    }
+    const del = e.target.closest(".del");
+    if (del) {
+      const li = del.closest("li");
+      const { sec } = buscarItem(li);
+      if (!sec) return;
+      sec.items = sec.items.filter((i) => i.id !== li.dataset.id);
+      li.remove();
+      guardar(); resumen();
+      return;
+    }
+    const secDel = e.target.closest(".sec-del");
+    if (secDel) {
+      confirmar(secDel, () => {
+        const id = secDel.closest("section").dataset.sec;
+        datos.secciones = datos.secciones.filter((s) => s.id !== id);
+        guardar(); pintar();
+      });
+    }
+  });
+
+  // edición: se guarda al salir o con Enter
+  lista.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.isContentEditable) { e.preventDefault(); e.target.blur(); }
+    if (e.key === "Escape" && e.target.isContentEditable) e.target.blur();
+  });
+  lista.addEventListener("paste", (e) => {
+    if (!e.target.isContentEditable) return;
+    e.preventDefault();
+    const t = (e.clipboardData || window.clipboardData).getData("text").replace(/\s+/g, " ");
+    document.execCommand("insertText", false, t);
+  });
+  lista.addEventListener("focusout", (e) => {
+    const el = e.target;
+    if (!el.isContentEditable) return;
+    const v = limpio(el);
+    if (el.classList.contains("sec-title")) {
+      const sec = buscarSec(el.closest("section").dataset.sec);
+      if (!sec) return;
+      if (v) sec.titulo = v;
+      el.textContent = sec.titulo;
+    } else {
+      const { it } = buscarItem(el.closest("li"));
+      if (!it) return;
+      if (el.classList.contains("txt")) {
+        if (v) it.texto = v;
+        el.textContent = it.texto;
+      } else {
+        it.nota = v;
+        el.textContent = v;
+      }
+    }
+    guardar();
+  });
+
+  // añadir
+  lista.addEventListener("keydown", (e) => {
+    const input = e.target.closest(".add input");
+    if (!input || e.key !== "Enter" || e.isComposing) return;
+    e.preventDefault();
+    const texto = input.value.replace(/\s+/g, " ").trim();
+    if (!texto) return;
+    const sec = buscarSec(input.closest("section").dataset.sec);
+    if (!sec) return;
+    const it = { id: uid(), texto, nota: "", s: 0 };
+    sec.items.push(it);
+    guardar();
+    const ul = input.closest("section").querySelector("ul");
+    ul.insertAdjacentHTML("beforeend", itemHTML(it));
+    ul.lastElementChild.classList.add("flash");
+    input.value = "";
+    resumen();
+  });
+
+  $("new-sec").addEventListener("click", () => {
+    const sec = { id: uid(), titulo: "Nueva sección", items: [] };
+    datos.secciones.push(sec);
+    guardar(); pintar();
+    const t = document.querySelector(`[data-sec="${sec.id}"] .sec-title`);
+    t.scrollIntoView({ behavior: "smooth", block: "center" });
+    t.focus();
+    const r = document.createRange();
+    r.selectNodeContents(t);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+
+  $("toggle-no").addEventListener("click", () => {
+    datos.ocultar = !datos.ocultar;
+    lista.classList.toggle("hide-no", datos.ocultar);
+    guardar(); resumen();
+  });
+
+  $("reset").addEventListener("click", (e) => {
+    confirmar(e.currentTarget, () => {
+      for (const sec of datos.secciones) for (const it of sec.items) it.s = 0;
+      guardar(); pintar();
+    });
+  });
+
+  // línea bajo la barra cuando se queda pegada arriba
+  const bar = $("bar");
+  const marca = document.createElement("div");
+  bar.before(marca);
+  new IntersectionObserver(([en]) => bar.classList.toggle("stuck", !en.isIntersecting)).observe(marca);
+
+  // si se abre en otra pestaña, se mantiene al día
+  window.addEventListener("storage", (e) => {
+    if (e.key !== KEY) return;
+    if (document.activeElement && document.activeElement.isContentEditable) return;
+    datos = cargar(); pintar();
+  });
+
+  pintar();
+})();
+</script>
+</body>
+</html>
